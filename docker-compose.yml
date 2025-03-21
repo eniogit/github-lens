@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:17.4
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./gl-backend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - db
+    environment:
+      DB_USERNAME: user
+      DB_PASSWORD: password
+      DB_NAME: mydb
+      DB_HOST: db
+      DB_PORT: 5432
+      CLIENT_ID: Iv23lifWdIdQ6HsC3Pjz
+      CLIENT_SECRET: 649b64369a0b77a479a9e6e6f7707e6a5826c7c5
+      JWT_SECRET: your_jwt_secret
+      PRIVATE_ACCESS_TOKEN: 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
+      FRONTEND_URL: http://localhost:4173
+
+  frontend:
+    build:
+      context: ./gl-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_URL: http://localhost:4173
+        VITE_API_URL: http://localhost:3000
+        VITE_GITHUB_LOGIN_URL: https://github.com/login/oauth/authorize
+        VITE_GITHUB_CLIENT_ID: Iv23lifWdIdQ6HsC3Pjz
+        VITE_GITHUB_REDIRECT_URL: /github/callback
+    ports:
+      - "127.0.0.1:4173:4173"
+    depends_on:
+      - backend
+      
+volumes:
+  db_data: {}
